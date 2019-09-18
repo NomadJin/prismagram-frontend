@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import AuthPresenter from "./AuthPresenter";
 import useInput from "../../Hooks/useInput";
 import { useMutation } from "react-apollo-hooks";
-import { LOG_IN } from "./AuthQueries";
+import { LOG_IN, CREATE_ACCOUNT } from "./AuthQueries";
+import { toast } from "react-toastify";
 
 export default () => {
   const [action, setAction] = useState("logIn");
@@ -10,14 +11,59 @@ export default () => {
   const firstName = useInput("");
   const lastName = useInput("");
   const email = useInput("");
-  const [requestSecret] = useMutation(LOG_IN, {
+  const [requestSecretMutation] = useMutation(LOG_IN, {
     variables: { email: email.value }
   });
+  const [createAccountMutation] = useMutation(CREATE_ACCOUNT, {
+    variables: {
+      username: username.value,
+      email: email.value,
+      firstName: firstName.value,
+      lastName: lastName.value
+    }
+  });
 
-  const onLogin = e => {
+  const onSubmit = async e => {
     e.preventDefault();
-    if (email !== "") {
-      requestSecret();
+    if (action === "logIn") {
+      if (email.value !== "") {
+        try {
+          const {
+            data: { requestSecret }
+          } = await requestSecretMutation();
+          if (!requestSecret) {
+            toast.error("You don't have an account yet, create one");
+            setTimeout(() => setAction("signUp"), 3000);
+          }
+        } catch (e) {
+          toast.error("Can't request secret, try again");
+        }
+      } else {
+        toast.error("이메일은 필수 입력입니다.");
+      }
+    } else if (action === "signUp") {
+      if (
+        username.value !== "" &&
+        email.value !== "" &&
+        firstName.value !== "" &&
+        lastName.value !== ""
+      ) {
+        try {
+          const {
+            data: { createAccount }
+          } = await createAccountMutation();
+          if(!createAccount) {
+            toast.error("Can't create account");
+          } else {
+            toast.success("Account is created! Log in now");
+            setTimeout(() => setAction("logIn"), 3000);
+          }
+        } catch (e) {
+          toast.error(e.message);
+        }
+      } else {
+        toast.error("모든 입력 값은 필수 입력입니다.");
+      }
     }
   };
 
@@ -29,7 +75,7 @@ export default () => {
       firstName={firstName}
       lastName={lastName}
       email={email}
-      onLogin={onLogin}
+      onSubmit={onSubmit}
     />
   );
 };
