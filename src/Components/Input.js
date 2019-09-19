@@ -17,7 +17,8 @@ const Input = ({
   required = true,
   onChange,
   value,
-  type = "text"
+  type = "text",
+  className
 }) => (
   <Container
     placeholder={placeholder}
@@ -25,6 +26,7 @@ const Input = ({
     onChange={onChange}
     value={value}
     type={type}
+    className={className}
   />
 );
 
