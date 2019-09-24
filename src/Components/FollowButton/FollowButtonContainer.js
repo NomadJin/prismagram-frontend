@@ -14,7 +14,6 @@ const FollowButtonContainer = ({ isFollowing, id }) => {
   });
 
   const onClick = () => {
-    console.log(isFollowing);
     if (isFollowingS === true) {
       setIsFollowing(false);
       unFollowMutation();
